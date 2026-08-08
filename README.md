@@ -5,6 +5,7 @@ A Retrieval-Augmented Generation (RAG) chatbot that answers mental health questi
 # Problem Description
 
 People looking for information on mental health conditions, treatment options, and how to access care often face a wall of scattered, inconsistent information. This project builds a focused Q&A assistant that answers strictly from a single, curated FAQ source, so users get concise, grounded answers.
+[images](html.png)
 
 
 ## Target Audience
@@ -155,24 +156,25 @@ A ground-truth query set was evaluated against the `minsearch` index using
 
 - Basic Version: Minsearch Without Boosting
 
-| Metric | Score |
-|---|---|
-| Hit Rate | 67.75% |
-| MRR | 49.35% |
-| Precision | 13.55% |
-| Recall | 67.75% |
+Configuration | Hit Rate | MRR | Precision | Recall
+|-----|------|--------|------| ------
+| Baseline (equal weights, k= 5) | 67.75% |  49.35% | 13.55% | 67.75%
+| No boosting, k=10 |77.14%	| 50.58%| 7.71%	 | 77.14%
+| Tuned boosting (Questions: 0.24, Answers: 0.88), k=10	| 77.14% | 50.58% | 7.71% | 77.14%
+
+Key finding: tuned boost weights and no boosting at all produced identical results at the same k — field-level weighting between Questions and Answers had no measurable effect on retrieval quality for this corpus. The entire improvement came from increasing retrieval depth (num_results) from 5 to 10, not from weighting.
+
 
 **Notes on interpretation:**
 - Hit Rate and Recall are mathematically identical here, since each query
   has exactly one relevant document — both answer the same yes/no question
   ("was the correct document retrieved at all") from different angles.
 
-- Precision is structurally bounded by retrieval depth: with one relevant
-  document per query and `k` results returned per query during evaluation,
-  maximum possible precision is `1/k` — the observed value is consistent
-  with this, not an independent quality signal.
+- Precision decreases as k increases by mathematical necessity, 
+  not declining quality — with one relevant document per query, 
+  precision is capped at 1/k regardless of retrieval quality.
 
-- MRR (~0.49, implying the correct document typically ranks around position
+- MRR (~0.49-0.51, implying the correct document typically ranks around position
   2 rather than 1) was investigated further: the corpus contains
   near-duplicate FAQ entries with nearly identical phrasing but different
   IDs (e.g. two separate entries both asking "how can I find a mental
@@ -191,6 +193,8 @@ acting as judge, classifying each as `RELEVANT`, `PARTLY_RELEVANT`, or
 | RELEVANT | *381* | *77.76%* |
 | PARTLY_RELEVANT | *44* | *8.98%* |
 | NON_RELEVANT | *65* | *13.27* |
+
+[images](relevance_results.png)
 
 
 
