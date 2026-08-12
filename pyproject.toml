@@ -7,6 +7,7 @@ requires-python = ">=3.9"
 dependencies = [
     "flask>=3.1.3",
     "groq>=1.0.0",
+    "gunicorn>=23.0.0",
     "jupyter>=1.1.1",
     "matplotlib>=3.9.4",
     "minsearch>=0.0.8",
