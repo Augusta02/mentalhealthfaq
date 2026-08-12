@@ -18,29 +18,29 @@ People looking for information on mental health conditions, treatment options, a
 ## Target Audience
 
 Adults and adolscents seeking accessible, plain-language information about mental
-health — for themselves or someone they care about; covering diagnosis and
+health; for themselves or someone they care about; covering diagnosis and
 symptoms, treatment and therapy options, medication, how to find and pay for
 care, and how to support a friend or family member.
 
 ## Technologies and Tools Used
 
-- **Flask** — backend web framework serving both the chat UI and the API
+- **Flask** :backend web framework serving both the chat UI and the API
   (`/question`, `/feedback`)
-- **minsearch** — lightweight TF-IDF + cosine similarity search, used for
+- **minsearch** : lightweight TF-IDF + cosine similarity search, used for
   retrieval given the corpus's small size (98 rows)
-- **OpenAI `gpt-4o-mini`** — both for answer generation and for LLM-as-judge
+- **OpenAI `gpt-4o-mini`**: both for answer generation and for LLM-as-judge
   relevance evaluation
-- **SQLite** (`sqlite3`, Python standard library) — stores every
+- **SQLite** (`sqlite3`, Python standard library): stores every
   conversation (question, answer, retrieved-context-derived response,
   relevance judgment, token usage, cost, response time) and user feedback.
-- **pandas / scikit-learn** — data loading and the TF-IDF retrieval backend
-- **python-dotenv** — environment variable / API key management
-- **uv** — Python package and virtual environment management
+- **pandas / scikit-learn**: data loading and the TF-IDF retrieval backend
+- **python-dotenv**: environment variable / API key management
+- **uv**:  Python package and virtual environment management
 
 ## Dataset
 
 [Mental Health FAQ for Chatbot](https://www.kaggle.com/datasets/narendrageek/mental-health-faq-for-chatbot)
-(Kaggle) — 98 question/answer pairs (`Question_ID`, `Questions`, `Answers`),
+(Kaggle) which contains 98 question/answer pairs (`Question_ID`, `Questions`, `Answers`),
 covering understanding mental illness and specific conditions, treatment and
 therapy, medication, finding and accessing care, cost/insurance navigation,
 and supporting a friend or family member.
@@ -95,22 +95,22 @@ retrieval benefits a larger, more paraphrase-heavy corpus would need.
 
 ### `rag.py`
 Core RAG logic:
-- `search(query)` — retrieves the single closest-matching FAQ entry
+- `search(query)`: retrieves the single closest-matching FAQ entry
   (`num_results=1`), to keep the LLM grounded in one concrete answer rather
   than blending several
-- `build_prompt(query, search_results)` — constructs the system + user
+- `build_prompt(query, search_results)` : constructs the system + user
   prompt from the retrieved Q&A pair
-- `llm(prompt, model)` — calls OpenAI, returns both the answer text and
+- `llm(prompt, model)` : calls OpenAI, returns both the answer text and
   token usage
-- `evaluate_results(question, answer)` — LLM-as-judge relevance scoring
+- `evaluate_results(question, answer)` : LLM-as-judge relevance scoring
   (`RELEVANT` / `PARTLY_RELEVANT` / `NON_RELEVANT`, with an explanation)
-- `calculate_openai_cost(model, tokens)` — per-call cost estimate from token
+- `calculate_openai_cost(model, tokens)` : per-call cost estimate from token
   usage
-- `rag(query, model)` — orchestrates the full flow end to end and returns
+- `rag(query, model)` : orchestrates the full flow end to end and returns
   everything `db.py` needs to log
 
 ### `db.py`
-SQLite conversation and feedback logging — `init_db()`, `save_conversation()`,
+SQLite conversation and feedback logging : `init_db()`, `save_conversation()`,
 `save_feedback()`, `get_recent_conversations()`, `get_feedback_stats()`.
 
 
@@ -119,10 +119,10 @@ Run once to (re)initialize the database schema before starting the app.
 
 ### `app.py`
 Flask application:
-- `GET /` — serves the chat UI
-- `POST /question` — runs the full RAG pipeline for a user's question, logs
+- `GET /`: serves the chat UI
+- `POST /question`: runs the full RAG pipeline for a user's question, logs
   the conversation, returns the answer
-- `POST /feedback` — logs a 👍/👎 for a given conversation
+- `POST /feedback`: logs a 👍/👎 for a given conversation
 
 ### `templates/index.html`
 A lightweight chat interface with inline feedback buttons on every assistant response.
