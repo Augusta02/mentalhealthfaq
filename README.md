@@ -201,7 +201,7 @@ acting as judge, classifying each as `RELEVANT`, `PARTLY_RELEVANT`, or
 | PARTLY_RELEVANT | *44* | *8.98%* |
 | NON_RELEVANT | *65* | *13.27* |
 
-![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_distribution.png)
+![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_results.png)
 
 
 
