@@ -148,9 +148,6 @@ Start the app:
 uv run python app.py
 ```
 
-Open `http://127.0.0.1:5000` in a browser.
-or ngrok `https://tarnish-elf-nerd.ngrok-free.dev`
-
 ## Evaluation
 
 Two separate evaluation approaches, covering both halves of the RAG
