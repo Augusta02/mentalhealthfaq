@@ -218,18 +218,18 @@ interaction — sufficient for this PoC to review real usage after the fact.
 
 ## Limitations and What's Next
 
-- **Corpus is regionally specific** (British Columbia, Canada) — a real
+- **Corpus is regionally specific** (British Columbia, Canada): a real
   deployment would need region-appropriate content for its actual audience.
-- **TF-IDF retrieval (minsearch), not semantic embeddings** — a deliberate
+- **TF-IDF retrieval (minsearch), not semantic embeddings**: a deliberate
   trade-off given the small corpus size; a larger, more paraphrase-heavy
   corpus would likely benefit from dense embedding retrieval instead.
-- **No live monitoring dashboard** — conversation/feedback data is logged
+- **No live monitoring dashboard**: conversation/feedback data is logged
   but not yet visualized; a Grafana or similar dashboard over the SQLite
   data would be a natural next step.
-- **Single LLM evaluated** (`gpt-4o-mini`) for both generation and judging —
+- **Single LLM evaluated** (`gpt-4o-mini`) for both generation and judging:
   comparing against an alternative model would help validate whether
   relevance judgments are consistent across judges.
-- **No automated test suite** — manual and notebook-based testing was used
+- **No automated test suite**:  manual and notebook-based testing was used
   throughout; a `pytest` suite would strengthen this for anything beyond a
   PoC.
 
