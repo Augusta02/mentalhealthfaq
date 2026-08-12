@@ -171,11 +171,11 @@ Key finding: tuned boost weights and no boosting at all produced identical resul
 
 **Notes on interpretation:**
 - Hit Rate and Recall are mathematically identical here, since each query
-  has exactly one relevant document — both answer the same yes/no question
+  has exactly one relevant document; both answer the same yes/no question
   ("was the correct document retrieved at all") from different angles.
 
 - Precision decreases as k increases by mathematical necessity, 
-  not declining quality — with one relevant document per query, 
+  not declining quality;  with one relevant document per query, 
   precision is capped at 1/k regardless of retrieval quality.
 
 - MRR (~0.49-0.51, implying the correct document typically ranks around position
