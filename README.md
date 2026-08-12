@@ -1,11 +1,14 @@
 # Mental Health FAQ Assistant
 
+**Live Demo**: https://mentalhealthfaq.onrender.com
+
 A Retrieval-Augmented Generation (RAG) chatbot that answers mental health questions grounded in a curated FAQ knowledge base. Built as a practical demonstration of an LLM-powered Q&A feature: retrieval, prompt engineering, generation, and a full evaluation framework covering both retrieval quality and generated-answer relevance.
 
 # Problem Description
 
 People looking for information on mental health conditions, treatment options, and how to access care often face a wall of scattered, inconsistent information. This project builds a focused Q&A assistant that answers strictly from a single, curated FAQ source, so users get concise, grounded answers.
-[images](html.png)
+
+![images](html.png)
 
 
 ## Target Audience
@@ -194,7 +197,7 @@ acting as judge, classifying each as `RELEVANT`, `PARTLY_RELEVANT`, or
 | PARTLY_RELEVANT | *44* | *8.98%* |
 | NON_RELEVANT | *65* | *13.27* |
 
-[images](relevance_results.png)
+![images](relevance_results.png)
 
 
 
