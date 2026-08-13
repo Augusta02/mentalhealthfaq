@@ -3,7 +3,7 @@
 **Live Demo**: https://mentalhealthfaq.onrender.com
 
 > **Note:** hosted on Render's free tier, which sleeps after inactivity.
-> First request after a while may take 30–60 seconds to wake up — this
+> First request after a while may take 30–60 seconds to wake up, this
 > is expected, not a bug.
 
 A Retrieval-Augmented Generation (RAG) chatbot that answers mental health questions grounded in a curated FAQ knowledge base. Built as a practical demonstration of an LLM-powered Q&A feature: retrieval, prompt engineering, generation, and a full evaluation framework covering both retrieval quality and generated-answer relevance.
