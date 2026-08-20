@@ -14,4 +14,4 @@ EXPOSE 5000
 
 WORKDIR /app/qa_assistant
 
-CMD ["sh", "-c", "uv run python prep_db && uv run gunicorn --bind 0.0.0.0:5000 --workers 2 app:app"]
+CMD ["sh", "-c", "uv run python db_prep.py && uv run gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 2 app:app"]
