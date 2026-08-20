@@ -1,6 +1,6 @@
 # Mental Health FAQ Assistant
 
-**🔗 Live Demo: https://mentalhealthfaq.onrender.com
+🔗 Live Demo: https://mentalhealthfaq.onrender.com
 
 > **Note:** hosted on Render's free tier, which sleeps after inactivity.
 > First request after a while may take 30–60 seconds to wake up : this
@@ -213,10 +213,11 @@ useful, if modest, finding: a larger model did not produce better grounded
 answers here and reinforces `gpt-4o-mini` as the right choice for
 this project on both quality and cost grounds, not cost alone.
 
-![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_distribution.png)
+![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_results.png)
 
 
 ## Monitoring
+🔗 Live Demo: https://mentalhealthfaq.onrender.com/dasboard
 
 Every conversation and feedback event is logged to SQLite (`conversations.db`),
 including relevance judgment, token usage, cost, and response time per
@@ -230,7 +231,7 @@ usage, and cost over time, plus a table of the five most recent
 conversations. The dashboard queries the same SQLite database directly
 through a small set of aggregation functions in `db.py`.
 
-**Note**: Sometimes users migt not provide feedback. 
+**Note**: Sometimes users might not provide feedback. 
 
 ![Monitoring dashboard showing relevance distribution, feedback, model usage, and cost and token trends](images/dashboard.png)
 
