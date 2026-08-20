@@ -1,6 +1,6 @@
 # Mental Health FAQ Assistant
 
-**🔗 Live Demo: [your-app-name.onrender.com](https://your-app-name.onrender.com)**
+**🔗 Live Demo: [your-app-name.onrender.com](https://mentalhealthfaq.onrender.com/)**
 
 > **Note:** hosted on Render's free tier, which sleeps after inactivity.
 > First request after a while may take 30–60 seconds to wake up : this
