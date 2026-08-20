@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mental Health FAQ Assistant, Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 30px auto; color: #1a2b2c; background: #fff; }
+        h2 { margin-bottom: 4px; }
+        .subtitle { color: #5c7a7b; font-size: 14px; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #f0f7f6; border-radius: 10px; padding: 18px; }
+        .card h3 { margin: 0 0 12px; font-size: 15px; color: #028090; }
+        .card.wide { grid-column: 1 / -1; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #dde9e7; }
+        th { color: #5c7a7b; font-weight: 600; }
+        .stat-row { display: flex; gap: 24px; margin-bottom: 20px; }
+        .stat { background: #023436; color: white; border-radius: 10px; padding: 14px 20px; flex: 1; }
+        .stat .value { font-size: 26px; font-weight: 700; color: #02c39a; }
+        .stat .label { font-size: 12px; color: #9fc7c5; margin-top: 2px; }
+        .empty-note { color: #5c7a7b; font-size: 13px; padding: 20px 0; text-align: center; }
+        canvas { max-height: 260px; }
+    </style>
+</head>
+<body>
+    <h2>Monitoring Dashboard</h2>
+    <div class="subtitle">Live data from the conversations and feedback logs. Refresh the page for the latest numbers.</div>
+
+    <div class="stat-row" id="stat-row"></div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Relevance distribution</h3>
+            <canvas id="relevanceChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Feedback</h3>
+            <canvas id="feedbackChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Model used</h3>
+            <canvas id="modelChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Response time (seconds)</h3>
+            <canvas id="responseTimeChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Tokens per conversation</h3>
+            <canvas id="tokensChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Cost per conversation (USD)</h3>
+            <canvas id="costChart"></canvas>
+        </div>
+        <div class="card wide">
+            <h3>Last 5 conversations</h3>
+            <div id="recent-table"></div>
+        </div>
+    </div>
+
+    <script>
+        const TEAL = "#028090";
+        const SEAFOAM = "#00A896";
+        const MINT = "#02C39A";
+        const GRAY = "#cfd8d7";
+
+        function shortDateTime(iso) {
+            const d = new Date(iso);
+            if (isNaN(d)) return iso;
+            return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        }
+
+        async function loadDashboard() {
+            const response = await fetch("/dashboard/data");
+            const data = await response.json();
+
+            // --- top stat row ---
+            const totalConvos = data.relevance_distribution.reduce((sum, r) => sum + r.count, 0);
+            const statRow = document.getElementById("stat-row");
+            statRow.innerHTML = `
+                <div class="stat"><div class="value">${totalConvos}</div><div class="label">Total conversations</div></div>
+                <div class="stat"><div class="value">${data.feedback_stats.thumbs_up}</div><div class="label">Thumbs up</div></div>
+                <div class="stat"><div class="value">${data.feedback_stats.thumbs_down}</div><div class="label">Thumbs down</div></div>
+            `;
+
+            if (totalConvos === 0) {
+                document.querySelector(".grid").innerHTML = '<div class="card wide"><div class="empty-note">No conversations logged yet. Ask the assistant a question first, then refresh this page.</div></div>';
+                return;
+            }
+
+            // --- relevance distribution ---
+            new Chart(document.getElementById("relevanceChart"), {
+                type: "doughnut",
+                data: {
+                    labels: data.relevance_distribution.map(r => r.relevance),
+                    datasets: [{ data: data.relevance_distribution.map(r => r.count), backgroundColor: [TEAL, SEAFOAM, MINT] }],
+                },
+                options: { plugins: { legend: { position: "bottom" } } },
+            });
+
+            // --- feedback ---
+            new Chart(document.getElementById("feedbackChart"), {
+                type: "pie",
+                data: {
+                    labels: ["Thumbs up", "Thumbs down"],
+                    datasets: [{ data: [data.feedback_stats.thumbs_up, data.feedback_stats.thumbs_down], backgroundColor: [TEAL, GRAY] }],
+                },
+                options: { plugins: { legend: { position: "bottom" } } },
+            });
+
+            // --- model usage ---
+            new Chart(document.getElementById("modelChart"), {
+                type: "bar",
+                data: {
+                    labels: data.model_usage.map(m => m.model_used),
+                    datasets: [{ data: data.model_usage.map(m => m.count), backgroundColor: TEAL }],
+                },
+                options: { indexAxis: "y", plugins: { legend: { display: false } } },
+            });
+
+            // --- response time over time ---
+            new Chart(document.getElementById("responseTimeChart"), {
+                type: "line",
+                data: {
+                    labels: data.response_time_over_time.map(p => shortDateTime(p.timestamp)),
+                    datasets: [{ data: data.response_time_over_time.map(p => p.value), borderColor: SEAFOAM, tension: 0.2 }],
+                },
+                options: { plugins: { legend: { display: false } } },
+            });
+
+            // --- tokens over time ---
+            new Chart(document.getElementById("tokensChart"), {
+                type: "line",
+                data: {
+                    labels: data.tokens_over_time.map(p => shortDateTime(p.timestamp)),
+                    datasets: [{ data: data.tokens_over_time.map(p => p.value), borderColor: MINT, tension: 0.2 }],
+                },
+                options: { plugins: { legend: { display: false } } },
+            });
+
+            // --- cost over time ---
+            new Chart(document.getElementById("costChart"), {
+                type: "line",
+                data: {
+                    labels: data.cost_over_time.map(p => shortDateTime(p.timestamp)),
+                    datasets: [{ data: data.cost_over_time.map(p => p.value), borderColor: TEAL, tension: 0.2 }],
+                },
+                options: { plugins: { legend: { display: false } } },
+            });
+
+            // --- recent conversations table ---
+            const rows = data.recent_conversations.map(c => `
+                <tr>
+                    <td>${(c.question || "").slice(0, 60)}</td>
+                    <td>${c.relevance || ""}</td>
+                    <td>${c.feedback === 1 ? "👍" : c.feedback === -1 ? "👎" : ""}</td>
+                    <td>${shortDateTime(c.timestamp)}</td>
+                </tr>
+            `).join("");
+            document.getElementById("recent-table").innerHTML = `
+                <table>
+                    <thead><tr><th>Question</th><th>Relevance</th><th>Feedback</th><th>Date</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

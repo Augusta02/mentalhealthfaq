@@ -4,10 +4,28 @@ from rag import rag
 import db
 
 app = Flask(__name__)
+db.init_db()
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+ 
+ 
+@app.route("/dashboard/data")
+def dashboard_data():
+    return jsonify({
+        "recent_conversations": db.get_recent_conversations(limit=10),
+        "feedback_stats": db.get_feedback_stats(),
+        "relevance_distribution": db.get_relevance_distribution(),
+        "model_usage": db.get_model_usage(),
+        "cost_over_time": db.get_timeseries("openai_cost"),
+        "tokens_over_time": db.get_timeseries("total_tokens"),
+        "response_time_over_time": db.get_timeseries("response_time"),
+    })
 
 @app.route("/question", methods=["POST"])
 def handle_question():

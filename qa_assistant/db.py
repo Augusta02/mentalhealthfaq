@@ -11,14 +11,12 @@ def get_connection():
     return conn
 
 
+
 def init_db():
     conn = get_connection()
     try:
-        conn.execute("DROP TABLE IF EXISTS feedback")
-        conn.execute("DROP TABLE IF EXISTS conversations")
-
         conn.execute("""
-            CREATE TABLE conversations (
+            CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
                 question TEXT NOT NULL,
                 answer TEXT NOT NULL,
@@ -37,7 +35,7 @@ def init_db():
             )
         """)
         conn.execute("""
-            CREATE TABLE feedback (
+            CREATE TABLE IF NOT EXISTS feedback (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 conversation_id TEXT REFERENCES conversations(id),
                 feedback INTEGER NOT NULL,
@@ -137,5 +135,62 @@ def get_feedback_stats():
             FROM feedback
         """).fetchone()
         return dict(row)
+    finally:
+        conn.close()
+
+
+
+# dashboard monitoring integration 
+def get_relevance_distribution():
+    """Count of conversations per relevance label, for a pie/doughnut chart."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute("""
+            SELECT relevance, COUNT(*) as count
+            FROM conversations
+            GROUP BY relevance
+        """).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+ 
+ 
+def get_model_usage():
+    """Count of conversations per model, for a bar chart."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute("""
+            SELECT model_used, COUNT(*) as count
+            FROM conversations
+            GROUP BY model_used
+        """).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+ 
+ 
+def get_timeseries(field, limit=200):
+    """Generic timestamp + numeric field pairs, for line charts (cost,
+    tokens, response time). `field` is validated against an allowlist so
+    this can never be used to inject an arbitrary column name into SQL."""
+    allowed_fields = {"openai_cost", "total_tokens", "response_time"}
+    if field not in allowed_fields:
+        raise ValueError(f"field must be one of {allowed_fields}, got {field!r}")
+ 
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        # field is safe to interpolate directly ONLY because it was just
+        # validated against the fixed allowlist above, never from raw user input
+        rows = conn.execute(f"""
+            SELECT timestamp, {field} as value
+            FROM conversations
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+        # reverse so charts read left-to-right in chronological order
+        return [dict(row) for row in reversed(rows)]
     finally:
         conn.close()
