@@ -1,9 +1,9 @@
 # Mental Health FAQ Assistant
 
-**Live Demo**: https://mentalhealthfaq.onrender.com
+**🔗 Live Demo: [your-app-name.onrender.com](https://your-app-name.onrender.com)**
 
 > **Note:** hosted on Render's free tier, which sleeps after inactivity.
-> First request after a while may take 30–60 seconds to wake up, this
+> First request after a while may take 30–60 seconds to wake up : this
 > is expected, not a bug.
 
 A Retrieval-Augmented Generation (RAG) chatbot that answers mental health questions grounded in a curated FAQ knowledge base. Built as a practical demonstration of an LLM-powered Q&A feature: retrieval, prompt engineering, generation, and a full evaluation framework covering both retrieval quality and generated-answer relevance.
@@ -40,7 +40,7 @@ care, and how to support a friend or family member.
 ## Dataset
 
 [Mental Health FAQ for Chatbot](https://www.kaggle.com/datasets/narendrageek/mental-health-faq-for-chatbot)
-(Kaggle) which contains 98 question/answer pairs (`Question_ID`, `Questions`, `Answers`),
+(Kaggle) : 98 question/answer pairs (`Question_ID`, `Questions`, `Answers`),
 covering understanding mental illness and specific conditions, treatment and
 therapy, medication, finding and accessing care, cost/insurance navigation,
 and supporting a friend or family member.
@@ -127,6 +127,12 @@ Flask application:
 ### `templates/index.html`
 A lightweight chat interface with inline feedback buttons on every assistant response.
 
+### `templates/dashboard.html`
+The monitoring dashboard, built with Chart.js loaded from a CDN, no new
+Python dependency. Shows total conversations, feedback counts, relevance
+distribution, model usage, and cost, token, and response time trends over
+time, plus a table of the five most recent conversations.
+
 ## Running the Application
 
 ```bash
@@ -151,82 +157,126 @@ uv run python app.py
 ## Evaluation
 
 Two separate evaluation approaches, covering both halves of the RAG
-pipeline — retrieval and generation — as distinct concerns.
+pipeline : retrieval and generation : as distinct concerns.
 
 ### 1. Retrieval Evaluation
 
 A ground-truth query set was evaluated against the `minsearch` index using
-`hit_rate`, `mean reciprocal rank (MRR)`, `precision`, and `recall`:
+`hit_rate`, `mean reciprocal rank (MRR)`, `precision`, and `recall`, testing
+two variables: field-level boosting (`Questions` vs. `Answers` weighting)
+and retrieval depth (`num_results`).
 
-- Basic Version: Minsearch Without Boosting
-
-Configuration | Hit Rate | MRR | Precision | Recall
-|-----|------|--------|------| ------
-| Baseline (equal weights, k= 5) | 67.75% |  49.35% | 13.55% | 67.75%
-| No boosting, k=10 |77.14%	| 50.58%| 7.71%	 | 77.14%
-| Tuned boosting (Questions: 0.24, Answers: 0.88), k=10	| 77.14% | 50.58% | 7.71% | 77.14%
+| Configuration | Hit Rate | MRR | Precision | Recall |
+|---|---|---|---|---|
+| Baseline (equal weights, k=5) | 67.75% | 49.35% | 13.55% | 67.75% |
+| No boosting, k=10 | 77.14% | 50.58% | 7.71% | 77.14% |
+| Tuned boosting (`Questions`: 0.24, `Answers`: 0.88), k=10 | 77.14% | 50.58% | 7.71% | 77.14% |
 
 Key finding: tuned boost weights and no boosting at all produced identical results at the same k — field-level weighting between Questions and Answers had no measurable effect on retrieval quality for this corpus. The entire improvement came from increasing retrieval depth (num_results) from 5 to 10, not from weighting.
 
+- Precision decreases as `k` increases by mathematical necessity, not
+  declining quality : with one relevant document per query, precision is
+  capped at `1/k` regardless of retrieval quality.
 
-**Notes on interpretation:**
-- Hit Rate and Recall are mathematically identical here, since each query
-  has exactly one relevant document; both answer the same yes/no question
-  ("was the correct document retrieved at all") from different angles.
+- Hit Rate and Recall remain mathematically identical throughout, since
+  each query has exactly one relevant document : both answer the same
+  yes/no question from different angles.
 
-- Precision decreases as k increases by mathematical necessity, 
-  not declining quality;  with one relevant document per query, 
-  precision is capped at 1/k regardless of retrieval quality.
+- MRR (~0.49–0.51 across configurations, implying the correct document
+  typically ranks around position 2) traces to near-duplicate FAQ entries
+  in the corpus : nearly identical phrasing under different IDs (e.g. two
+  separate entries both asking "how can I find a mental health professional
+  for myself or my child," worded slightly differently) : a real corpus
+  characteristic, not purely a retrieval defect.
 
-- MRR (~0.49-0.51, implying the correct document typically ranks around position
-  2 rather than 1) was investigated further: the corpus contains
-  near-duplicate FAQ entries with nearly identical phrasing but different
-  IDs (e.g. two separate entries both asking "how can I find a mental
-  health professional for myself or my child," worded slightly differently).
-  This means the *content* retrieved is often correct even when the
-  *specific expected ID* isn't ranked first.
 
 ### 2. RAG Flow Evaluation (LLM-as-Judge)
 
-Every generated answer in the evaluation set was scored by `gpt-4o-mini`
-acting as judge, classifying each as `RELEVANT`, `PARTLY_RELEVANT`, or
-`NON_RELEVANT`, with a written explanation for each judgment.
+Every generated answer in the evaluation set was scored by an LLM acting as
+judge, classifying each as `RELEVANT`, `PARTLY_RELEVANT`, or `NON_RELEVANT`,
+with a written explanation for each judgment.
 
-| Relevance | Count | % |
-|---|---|---|
-| RELEVANT | *381* | *77.76%* |
-| PARTLY_RELEVANT | *44* | *8.98%* |
-| NON_RELEVANT | *65* | *13.27* |
+A second run compared `gpt-4o` against `gpt-4o-mini` as the generation
+model, with the same model also judging its own answers in each run. Both
+runs cover the same 490 ground-truth questions.
 
-![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_results.png)
+| Relevance | gpt-4o-mini | % | gpt-4o | % |
+|---|---|---|---|---|
+| RELEVANT | 384 | 78.37% | 377 | 76.94% |
+| NON_RELEVANT | 53 | 10.82% | 62 | 12.65% |
+| PARTLY_RELEVANT | 53 | 10.82% | 51 | 10.41% |
 
 
+`gpt-4o-mini` performed marginally better on this corpus, both in relevance
+rate and cost, since it is also the cheaper model per token. This is a
+useful, if modest, finding: a larger model did not produce better grounded
+answers here and reinforces `gpt-4o-mini` as the right choice for
+this project on both quality and cost grounds, not cost alone.
 
-See `rag-test.py` for pulled examples of specific
-`NON_RELEVANT`/`PARTLY_RELEVANT` cases and the judge's reasoning for each —
-concrete examples of where the system underperformed.
+![Distribution of RELEVANT, PARTLY_RELEVANT, and NON_RELEVANT judgments across 490 evaluated answers](images/relevance_distribution.png)
+
 
 ## Monitoring
 
 Every conversation and feedback event is logged to SQLite (`conversations.db`),
 including relevance judgment, token usage, cost, and response time per
-interaction — sufficient for this PoC to review real usage after the fact.
+interaction.
+
+A lightweight monitoring dashboard is available at `/dashboard`, built
+directly into the Flask app with Chart.js, no separate service or new
+infrastructure required. It shows total conversations, thumbs up and down
+counts, the relevance distribution, model usage, and response time, token
+usage, and cost over time, plus a table of the five most recent
+conversations. The dashboard queries the same SQLite database directly
+through a small set of aggregation functions in `db.py`.
+
+**Note**: Sometimes users migt not provide feedback. 
+
+![Monitoring dashboard showing relevance distribution, feedback, model usage, and cost and token trends](images/dashboard.png)
 
 
 ## Limitations and What's Next
 
-- **Corpus is regionally specific** (British Columbia, Canada): a real
-  deployment would need region-appropriate content for its actual audience.
-- **TF-IDF retrieval (minsearch), not semantic embeddings**: a deliberate
-  trade-off given the small corpus size; a larger, more paraphrase-heavy
-  corpus would likely benefit from dense embedding retrieval instead.
-- **No live monitoring dashboard**: conversation/feedback data is logged
-  but not yet visualized; a Grafana or similar dashboard over the SQLite
-  data would be a natural next step.
-- **Single LLM evaluated** (`gpt-4o-mini`) for both generation and judging:
-  comparing against an alternative model would help validate whether
-  relevance judgments are consistent across judges.
-- **No automated test suite**:  manual and notebook-based testing was used
-  throughout; a `pytest` suite would strengthen this for anything beyond a
-  PoC.
+- **Field-level boosting tested, found ineffective: retrieval depth matters
+  more** : a random-search parameter tuning experiment (see Evaluation)
+  found that weighting `Questions` vs. `Answers` differently had no
+  measurable effect on retrieval quality for this corpus: increasing
+  `num_results` did. 
 
+- **The live app uses `num_results=1`: deeper retrieval (`k=10`) only
+  helped the evaluation's hit_rate/MRR, not the live pipeline** : the
+  top-ranked (#1) result is identical regardless of how many results are
+  requested, since `num_results` only controls how many candidates are
+  *returned*, not how they're *ranked*. The `k=10` improvement specifically
+  captured cases where the correct document ranked outside the top 5 but
+  within the top 10 : cases the live app's single-best-match retrieval
+  wouldn't have found correctly either way. Using more than one retrieved
+  context in generation (top-2 or top-3, rather than top-1) is the only way
+  this finding would become actionable for live answers, worth
+  testing deliberately rather than assuming it's a free improvement.
+
+- **Corpus is regionally specific** (British Columbia, Canada) : a real
+  deployment would need region-appropriate content for its actual audience.
+
+- **TF-IDF retrieval (minsearch), not semantic embeddings** : a deliberate
+  trade-off given the small corpus size: a larger, more paraphrase-heavy
+  corpus would likely benefit from dense embedding retrieval instead.
+
+- **SQLite has no persistent disk on Render's free tier.** The dashboard
+  and logging work correctly, but any new deploy rebuilds the container and
+  can reset the database. Confirmed directly during development: real
+  conversation data logged over several days was lost after a routine code
+  push. A production deployment would need either a paid Render plan with
+  a persistent disk, or a properly hosted database like Render's own
+  Postgres offering.
+
+- **Generation models compared (`gpt-4o` vs. `gpt-4o-mini`): judge model
+  still not independently validated** : the comparison above tests
+  generation quality across two models, but each run still uses the same
+  model to both generate and judge its own answers. Whether the judge
+  itself is reliable, independent of which model generated the answer, is
+  still untested. A true validation would hold generation constant and
+  swap only the judge, or bring in a third model purely as an independent
+  judge.
+
+-

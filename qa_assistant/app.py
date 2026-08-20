@@ -18,7 +18,7 @@ def dashboard():
 @app.route("/dashboard/data")
 def dashboard_data():
     return jsonify({
-        "recent_conversations": db.get_recent_conversations(limit=10),
+        "recent_conversations": db.get_recent_conversations(limit=5),
         "feedback_stats": db.get_feedback_stats(),
         "relevance_distribution": db.get_relevance_distribution(),
         "model_usage": db.get_model_usage(),
